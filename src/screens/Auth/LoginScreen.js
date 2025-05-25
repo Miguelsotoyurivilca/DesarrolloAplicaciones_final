@@ -2,7 +2,7 @@
 // Pantalla de Inicio de Sesión
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Añadido KeyboardAvoidingView, ScrollView
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
@@ -20,7 +20,7 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Campos incompletos', 'Por favor, ingresa tu correo y contraseña.');
       return;
     }
-    if (error) dispatch(setAuthError(null)); // Limpiar error previo
+    if (error) dispatch(setAuthError(null)); 
     
     const resultAction = await dispatch(loginUser({ email, password }));
     if (loginUser.rejected.match(resultAction)) {
@@ -29,56 +29,67 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Ionicons name="paw" size={80} color={COLORS.primary} style={styles.logo} />
-      <Text style={styles.title}>Bienvenido de Nuevo</Text>
-      <Text style={styles.subtitle}>Ingresa a tu cuenta para continuar</Text>
-      
-      {error && !isLoading && <Text style={styles.errorText}>{error}</Text>}
-      
-      <View style={styles.inputContainer}>
-        <Ionicons name="mail-outline" size={22} color={COLORS.gray} style={styles.inputIcon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Correo Electrónico"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          placeholderTextColor={COLORS.gray}
-        />
-      </View>
-      
-      <View style={styles.inputContainer}>
-        <Ionicons name="lock-closed-outline" size={22} color={COLORS.gray} style={styles.inputIcon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          placeholderTextColor={COLORS.gray}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.showPasswordIcon}>
-            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={24} color={COLORS.gray} />
-        </TouchableOpacity>
-      </View>
+    <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{flex: 1}}
+    >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+            <Ionicons name="paw-sharp" size={80} color={COLORS.primary} style={styles.logo} />
+            <Text style={styles.title}>Bienvenido de Nuevo</Text>
+            <Text style={styles.subtitle}>Ingresa a tu cuenta para continuar</Text>
+            
+            {error && !isLoading && <Text style={styles.errorText}>{error}</Text>}
+            
+            <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={22} color={COLORS.gray} style={styles.inputIcon} />
+                <TextInput
+                style={styles.input}
+                placeholder="Correo Electrónico"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={COLORS.gray}
+                />
+            </View>
+            
+            <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed-outline" size={22} color={COLORS.gray} style={styles.inputIcon} />
+                <TextInput
+                style={styles.input}
+                placeholder="Contraseña"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholderTextColor={COLORS.gray}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.showPasswordIcon}>
+                    <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={24} color={COLORS.gray} />
+                </TouchableOpacity>
+            </View>
 
-      {isLoading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Ingresar</Text>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity onPress={() => navigation.navigate(ROUTES.SIGNUP)} disabled={isLoading}>
-        <Text style={styles.linkText}>¿No tienes cuenta? <Text style={styles.linkTextBold}>Regístrate</Text></Text>
-      </TouchableOpacity>
-    </View>
+            {isLoading ? (
+                <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+            ) : (
+                <TouchableOpacity style={styles.button} onPress={handleLogin} activeOpacity={0.7}>
+                <Text style={styles.buttonText}>Ingresar</Text>
+                </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => navigation.navigate(ROUTES.SIGNUP)} disabled={isLoading} activeOpacity={0.7}>
+                <Text style={styles.linkText}>¿No tienes cuenta? <Text style={styles.linkTextBold}>Regístrate</Text></Text>
+            </TouchableOpacity>
+            </View>
+        </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -87,18 +98,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   logo: {
-    marginBottom: 20,
+    marginBottom: 25,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 28, // Ligeramente más pequeño
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium', // Fuente más moderna
+    fontWeight: '700', // Más peso
     color: COLORS.primary,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
     color: COLORS.textMuted,
-    marginBottom: 30,
+    marginBottom: 35,
     textAlign: 'center',
   },
   inputContainer: {
@@ -110,7 +122,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGray,
     borderRadius: 12,
-    marginBottom: 18,
+    marginBottom: 20, // Más espacio
     paddingHorizontal: 15,
   },
   inputIcon: {
@@ -120,6 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: COLORS.text,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   showPasswordIcon: {
     padding: 5,
@@ -141,15 +154,17 @@ const styles = StyleSheet.create({
   buttonText: {
     color: COLORS.white,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600', // Ligeramente menos bold
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   linkText: {
     color: COLORS.textMuted,
     fontSize: 15,
     marginTop: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   linkTextBold: {
-    color: COLORS.secondary,
+    color: COLORS.secondary, // Usar color secundario para el link
     fontWeight: 'bold',
   },
   loader: {
@@ -164,6 +179,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal:10,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   }
 });
 

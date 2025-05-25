@@ -1,27 +1,26 @@
 // src/screens/Main/ProfileScreen.js
 // Pantalla de Perfil de Usuario
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker'; // Importar expo-image-picker
-import { useEffect, useState } from 'react'; // Añadido useState, useEffect
-import { ActivityIndicator, Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Añadido Platform
+import * as ImagePicker from 'expo-image-picker';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
-import { logoutUser } from '../../store/slices/authSlice'; // setUser para actualizar localmente photoURL
-// import { auth as firebaseAuth, storage } from '../../services/firebase'; // Para futura subida a Firebase Storage
-// import { updateProfile } from 'firebase/auth';
-// import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../services/firebase'; // Importar storage y firebaseAuth
+import { logoutUser, updateUserProfilePhoto } from '../../store/slices/authSlice'; // Importar updateUserProfilePhoto
+// import { updateProfile } from 'firebase/auth'; // Ya está en authSlice
 
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const user = useSelector(state => state.auth.user); 
   const isLoadingLogout = useSelector(state => state.auth.isLoading); 
-  const [profileImageUri, setProfileImageUri] = useState(user?.photoURL || null); // Estado local para la imagen de perfil
-  const [isUploading, setIsUploading] = useState(false); // Estado para la carga de imagen
+  const [profileImageUri, setProfileImageUri] = useState(user?.photoURL || null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    // Actualizar la imagen local si cambia en el store de Redux (ej. al iniciar sesión)
     setProfileImageUri(user?.photoURL || null);
   }, [user?.photoURL]);
 
@@ -38,6 +37,38 @@ const ProfileScreen = ({ navigation }) => {
     return true;
   };
 
+  const handleImageUpload = async (uri) => {
+    if (!user || !uri) return;
+    setIsUploading(true);
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const fileExtension = uri.split('.').pop();
+      const fileName = `${user.uid}_${Date.now()}.${fileExtension}`;
+      // Crear referencia en Firebase Storage en la carpeta 'profile_pictures/userId/fileName'
+      const storageRef = ref(storage, `profile_pictures/${user.uid}/${fileName}`);
+      
+      await uploadBytes(storageRef, blob);
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      // Despachar la acción para actualizar en Firebase Auth y Redux
+      const resultAction = await dispatch(updateUserProfilePhoto({ userId: user.uid, photoURL: downloadURL }));
+      
+      if (updateUserProfilePhoto.fulfilled.match(resultAction)) {
+        setProfileImageUri(downloadURL); // Actualizar estado local de la imagen
+        Alert.alert("Éxito", "Foto de perfil actualizada.");
+      } else {
+        throw new Error(resultAction.payload || "No se pudo actualizar la foto en Firebase Auth.");
+      }
+
+    } catch (e) {
+      console.error("Error subiendo imagen: ", e);
+      Alert.alert("Error", "No se pudo actualizar la foto de perfil. Inténtalo de nuevo.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const pickImage = async () => {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
@@ -52,13 +83,12 @@ const ProfileScreen = ({ navigation }) => {
             let result = await ImagePicker.launchCameraAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
-              aspect: [1, 1], // Cuadrada
+              aspect: [1, 1], 
               quality: 0.7,
             });
-            if (!result.canceled) {
-              setProfileImageUri(result.assets[0].uri);
-              // Aquí iría la lógica para subir la imagen a Firebase Storage y actualizar el perfil del usuario
-              // handleImageUpload(result.assets[0].uri);
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              // setProfileImageUri(result.assets[0].uri); // Actualización visual inmediata (opcional)
+              handleImageUpload(result.assets[0].uri);
             }
           }
         },
@@ -71,9 +101,9 @@ const ProfileScreen = ({ navigation }) => {
               aspect: [1, 1],
               quality: 0.7,
             });
-            if (!result.canceled) {
-              setProfileImageUri(result.assets[0].uri);
-              // handleImageUpload(result.assets[0].uri);
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              // setProfileImageUri(result.assets[0].uri); // Actualización visual inmediata (opcional)
+              handleImageUpload(result.assets[0].uri);
             }
           }
         },
@@ -81,34 +111,6 @@ const ProfileScreen = ({ navigation }) => {
       ]
     );
   };
-
-  // --- Lógica para subir imagen (FUTURA IMPLEMENTACIÓN) ---
-  // const handleImageUpload = async (uri) => {
-  //   if (!user || !uri) return;
-  //   setIsUploading(true);
-  //   try {
-  //     const response = await fetch(uri);
-  //     const blob = await response.blob();
-  //     const fileExtension = uri.split('.').pop();
-  //     const fileName = `${user.uid}_${Date.now()}.${fileExtension}`;
-  //     const storageRef = ref(storage, `profile_pictures/${fileName}`);
-      
-  //     await uploadBytes(storageRef, blob);
-  //     const downloadURL = await getDownloadURL(storageRef);
-      
-  //     await updateProfile(firebaseAuth.currentUser, { photoURL: downloadURL });
-  //     dispatch(setUser({ ...user, photoURL: downloadURL })); // Actualizar Redux
-  //     setProfileImageUri(downloadURL); // Actualizar estado local
-  //     Alert.alert("Éxito", "Foto de perfil actualizada.");
-
-  //   } catch (e) {
-  //     console.error("Error subiendo imagen: ", e);
-  //     Alert.alert("Error", "No se pudo actualizar la foto de perfil.");
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
-  // --- Fin Lógica para subir imagen ---
 
 
   const handleLogout = async () => {
@@ -146,9 +148,11 @@ const ProfileScreen = ({ navigation }) => {
               <ActivityIndicator color={COLORS.white} size="small" />
             </View>
           )}
-          <View style={profileStyles.cameraIconOverlay}>
-            <Ionicons name="camera" size={20} color={COLORS.white} />
-          </View>
+          {!isUploading && (
+            <View style={profileStyles.cameraIconOverlay}>
+                <Ionicons name="camera" size={20} color={COLORS.white} />
+            </View>
+          )}
         </TouchableOpacity>
         <Text style={profileStyles.userName}>{user?.displayName || user?.email || 'Usuario PetShop'}</Text>
         {user?.email && <Text style={profileStyles.userEmail}>{user.email}</Text>}
@@ -204,9 +208,9 @@ const profileStyles = StyleSheet.create({
     borderBottomRightRadius: 20,
   },
   profileImage: {
-    width: 110, // Ligeramente más grande
+    width: 110, 
     height: 110,
-    borderRadius: 55, // Mitad de width/height
+    borderRadius: 55, 
     marginBottom: 15,
     borderWidth: 3,
     borderColor: COLORS.white,

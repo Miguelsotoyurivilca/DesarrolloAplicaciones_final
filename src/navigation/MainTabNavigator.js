@@ -24,14 +24,19 @@ const Stack = createStackNavigator();
 
 const commonStackScreenOptions = {
   headerShown: true,
-  headerStyle: { backgroundColor: COLORS.primary },
+  headerStyle: { 
+    backgroundColor: COLORS.primary,
+    elevation: 0, // Remove shadow on Android
+    shadowOpacity: 0, // Remove shadow on iOS
+   },
   headerTintColor: COLORS.white,
-  headerTitleStyle: { fontWeight: 'bold' },
+  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }, // Ajuste de tamaño de fuente
+  headerTitleAlign: 'center', // Centrar título del header
 };
 
 const HomeStack = () => (
   <Stack.Navigator screenOptions={commonStackScreenOptions}>
-    <Stack.Screen name={ROUTES.HOME} component={HomeScreen} options={{ title: 'Inicio PetShop' }} />
+    <Stack.Screen name={ROUTES.HOME} component={HomeScreen} options={{ title: 'PetShop Deluxe' }} />
     <Stack.Screen name={ROUTES.PRODUCT_DETAIL} component={ProductDetailScreen} />
     <Stack.Screen name={ROUTES.PRODUCTS_BY_CATEGORY} component={ProductsScreen} /> 
   </Stack.Navigator>
@@ -39,21 +44,21 @@ const HomeStack = () => (
 
 const ProductsStack = () => (
   <Stack.Navigator screenOptions={commonStackScreenOptions}>
-    <Stack.Screen name={ROUTES.PRODUCTS} component={ProductsScreen} options={{ title: 'Todos los Productos' }} />
+    <Stack.Screen name={ROUTES.PRODUCTS} component={ProductsScreen} options={{ title: 'Catálogo Completo' }} />
     <Stack.Screen name={ROUTES.PRODUCT_DETAIL} component={ProductDetailScreen} />
   </Stack.Navigator>
 );
 
 const CartStack = () => (
   <Stack.Navigator screenOptions={commonStackScreenOptions}>
-    <Stack.Screen name={ROUTES.CART} component={CartScreen} options={{ title: 'Carrito de Compras' }} />
+    <Stack.Screen name={ROUTES.CART} component={CartScreen} options={{ title: 'Mi Carrito' }} />
   </Stack.Navigator>
 );
 
 const ProfileStack = () => (
   <Stack.Navigator screenOptions={commonStackScreenOptions}>
-    <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} options={{ title: 'Mi Perfil' }} />
-    <Stack.Screen name={ROUTES.ORDERS} component={OrdersScreen} options={{ title: 'Mis Pedidos' }} />
+    <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} options={{ title: 'Mi Cuenta' }} />
+    <Stack.Screen name={ROUTES.ORDERS} component={OrdersScreen} options={{ title: 'Historial de Pedidos' }} />
     {/* <Stack.Screen name={ROUTES.ORDER_DETAIL} component={OrderDetailScreen} options={{ title: 'Detalle del Pedido' }} /> */}
   </Stack.Navigator>
 );
@@ -69,14 +74,14 @@ const MainTabNavigator = () => {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === ROUTES.HOME_TAB) { 
-            iconName = focused ? 'home' : 'home-outline';
+            iconName = focused ? 'home-sharp' : 'home-outline';
           } else if (route.name === ROUTES.PRODUCTS_TAB) { 
-            iconName = focused ? 'list-circle' : 'list-circle-outline';
+            iconName = focused ? 'list-sharp' : 'list-outline';
           } else if (route.name === ROUTES.CART_TAB) { 
-            iconName = focused ? 'cart' : 'cart-outline';
+            iconName = focused ? 'cart-sharp' : 'cart-outline';
             return ( 
               <View style={tabNavStyles.iconContainer}>
-                <Ionicons name={iconName} size={size + (focused ? 3 : 0)} color={color} />
+                <Ionicons name={iconName} size={focused ? size + 4 : size + 2} color={color} />
                 {totalCartItems > 0 && (
                   <View style={tabNavStyles.badge}>
                     <Text style={tabNavStyles.badgeText}>{totalCartItems > 9 ? '9+' : totalCartItems}</Text>
@@ -85,23 +90,29 @@ const MainTabNavigator = () => {
               </View>
             );
           } else if (route.name === ROUTES.PROFILE_TAB) { 
-            iconName = focused ? 'person-circle' : 'person-circle-outline';
+            iconName = focused ? 'person-sharp' : 'person-outline';
           }
-          return <Ionicons name={iconName} size={size + (focused ? 3 : 0)} color={color} />;
+          return <Ionicons name={iconName} size={focused ? size + 4 : size + 2} color={color} />;
         },
         tabBarActiveTintColor: COLORS.primary, 
-        tabBarInactiveTintColor: COLORS.gray, 
+        tabBarInactiveTintColor: COLORS.textMuted, 
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600', 
+          fontSize: 11, // Un poco más pequeño para más espacio
+          fontWeight: focused ? 'bold' : '500', 
+          marginBottom: 3, // Espacio debajo de la etiqueta
         },
         tabBarStyle: {
-          paddingBottom: 5,
+          paddingBottom: Platform.OS === 'ios' ? 2 : 5, // Ajuste para notch en iOS
           paddingTop:5,
-          height: 60,
+          height: Platform.OS === 'ios' ? 85 : 65, // Más alto para iOS
           backgroundColor: COLORS.white, 
-          borderTopWidth: 1, 
+          borderTopWidth: 0.5, // Borde más sutil
           borderTopColor: COLORS.lightGray,
+          elevation: 5, // Sombra sutil en Android
+          shadowColor: '#000', // Sombra sutil en iOS
+          shadowOffset: { width: 0, height: -1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
         },
       })}
     >
