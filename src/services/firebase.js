@@ -7,13 +7,13 @@ import { getDatabase, serverTimestamp } from "firebase/database";
 import { getStorage } from "firebase/storage"; // Importar getStorage
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY_AQUI", 
-  authDomain: "TU_AUTH_DOMAIN_AQUI.firebaseapp.com", 
-  databaseURL: "https://TU_DATABASE_URL_AQUI.firebaseio.com", 
-  projectId: "TU_PROJECT_ID_AQUI", 
-  storageBucket: "TU_STORAGE_BUCKET_AQUI.appspot.com", 
-  messagingSenderId: "TU_MESSAGING_SENDER_ID_AQUI", 
-  appId: "TU_APP_ID_AQUI" 
+  apiKey: "AIzaSyDc2yOKOnnxF8eVMX3awYI9hRoRypp_-Kk",
+  authDomain: "miappmascotasecommerce.firebaseapp.com",
+  projectId: "miappmascotasecommerce",
+  storageBucket: "miappmascotasecommerce.firebasestorage.app",
+  messagingSenderId: "176505676905",
+  appId: "1:176505676905:web:1ccb8b9debf6de5ef1eef8",
+  measurementId: "G-55GKDVFQQS"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();

@@ -2,7 +2,7 @@
 // Pantalla de Inicio de Sesión
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'; // Añadido KeyboardAvoidingView, ScrollView
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';

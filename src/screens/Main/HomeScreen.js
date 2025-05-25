@@ -1,8 +1,8 @@
 // src/screens/Main/HomeScreen.js
 // Pantalla Principal
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect } from 'react'; // Añadido useCallback
-import { ActivityIndicator, Alert, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Agregado RefreshControl
+import React, { useCallback, useEffect, useState } from 'react'; // Añadido useCallback
+import { ActivityIndicator, Alert, FlatList, Image, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';

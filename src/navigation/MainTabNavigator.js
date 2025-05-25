@@ -3,7 +3,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // Importar Pantallas principales
@@ -97,9 +97,9 @@ const MainTabNavigator = () => {
         tabBarActiveTintColor: COLORS.primary, 
         tabBarInactiveTintColor: COLORS.textMuted, 
         tabBarLabelStyle: {
-          fontSize: 11, // Un poco más pequeño para más espacio
-          fontWeight: focused ? 'bold' : '500', 
-          marginBottom: 3, // Espacio debajo de la etiqueta
+          fontSize: 11,
+          fontWeight: '600', // Un valor fijo, por ejemplo
+          marginBottom: 3,
         },
         tabBarStyle: {
           paddingBottom: Platform.OS === 'ios' ? 2 : 5, // Ajuste para notch en iOS

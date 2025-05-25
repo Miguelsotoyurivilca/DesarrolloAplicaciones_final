@@ -6,12 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
 import {
-    clearCart,
-    decrementItemQuantity,
-    incrementItemQuantity,
-    removeItemFromCart,
-    selectCartItems,
-    selectCartTotalAmount
+  clearCart,
+  decrementItemQuantity,
+  incrementItemQuantity,
+  removeItemFromCart,
+  selectCartItems,
+  selectCartTotalAmount
 } from '../../store/slices/cartSlice';
 import { processOrder } from '../../store/slices/orderSlice';
 
