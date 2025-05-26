@@ -3,27 +3,32 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react'; // Importado React explícitamente y useCallback
 import { ActivityIndicator, Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
-import { storage } from '../../services/firebase'; // Importar storage y firebaseAuth
-import { logoutUser, updateUserProfilePhoto } from '../../store/slices/authSlice'; // Importar updateUserProfilePhoto
-// import { updateProfile } from 'firebase/auth'; // Ya está en authSlice
+import { storage } from '../../services/firebase';
+// Asegúrate de que la ruta y la exportación sean correctas.
+// Si logoutUser es un default export, sería: import logoutUser from '...'
+// Si es un named export, es: import { logoutUser } from '...'
+import { logoutUser as logoutUserThunk, updateUserProfilePhoto } from '../../store/slices/authSlice';
 
+console.log('[ProfileScreen - Módulo] logoutUserThunk importado:', typeof logoutUserThunk, logoutUserThunk);
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const user = useSelector(state => state.auth.user); 
-  const isLoadingLogout = useSelector(state => state.auth.isLoading); 
+  const user = useSelector(state => state.auth.user);
+  const isLoadingAuth = useSelector(state => state.auth.isLoading); // Usaremos este para el logout también
+  const authError = useSelector(state => state.auth.error);
   const [profileImageUri, setProfileImageUri] = useState(user?.photoURL || null);
   const [isUploading, setIsUploading] = useState(false);
+
+  console.log('[ProfileScreen - Componente] logoutUserThunk al inicio del componente:', typeof logoutUserThunk, logoutUserThunk);
 
   useEffect(() => {
     setProfileImageUri(user?.photoURL || null);
   }, [user?.photoURL]);
-
 
   const requestPermissions = async () => {
     if (Platform.OS !== 'web') {
@@ -45,22 +50,19 @@ const ProfileScreen = ({ navigation }) => {
       const blob = await response.blob();
       const fileExtension = uri.split('.').pop();
       const fileName = `${user.uid}_${Date.now()}.${fileExtension}`;
-      // Crear referencia en Firebase Storage en la carpeta 'profile_pictures/userId/fileName'
       const storageRef = ref(storage, `profile_pictures/${user.uid}/${fileName}`);
       
       await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
       
-      // Despachar la acción para actualizar en Firebase Auth y Redux
       const resultAction = await dispatch(updateUserProfilePhoto({ userId: user.uid, photoURL: downloadURL }));
       
       if (updateUserProfilePhoto.fulfilled.match(resultAction)) {
-        setProfileImageUri(downloadURL); // Actualizar estado local de la imagen
+        setProfileImageUri(downloadURL);
         Alert.alert("Éxito", "Foto de perfil actualizada.");
       } else {
         throw new Error(resultAction.payload || "No se pudo actualizar la foto en Firebase Auth.");
       }
-
     } catch (e) {
       console.error("Error subiendo imagen: ", e);
       Alert.alert("Error", "No se pudo actualizar la foto de perfil. Inténtalo de nuevo.");
@@ -87,7 +89,6 @@ const ProfileScreen = ({ navigation }) => {
               quality: 0.7,
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
-              // setProfileImageUri(result.assets[0].uri); // Actualización visual inmediata (opcional)
               handleImageUpload(result.assets[0].uri);
             }
           }
@@ -102,7 +103,6 @@ const ProfileScreen = ({ navigation }) => {
               quality: 0.7,
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
-              // setProfileImageUri(result.assets[0].uri); // Actualización visual inmediata (opcional)
               handleImageUpload(result.assets[0].uri);
             }
           }
@@ -111,34 +111,81 @@ const ProfileScreen = ({ navigation }) => {
       ]
     );
   };
-
+  
+  // Definimos performLogout usando useCallback para que no se redeclare innecesariamente
+  // y para asegurar que las dependencias (dispatch, logoutUserThunk) sean claras.
+  const performLogout = useCallback(async () => {
+    console.log("[ProfileScreen - performLogout] Intentando despachar logoutUserThunk...");
+    console.log("[ProfileScreen - performLogout] typeof logoutUserThunk:", typeof logoutUserThunk, logoutUserThunk);
+    if (typeof logoutUserThunk !== 'function') {
+        console.error("[ProfileScreen - performLogout] logoutUserThunk NO ES UNA FUNCIÓN!");
+        Alert.alert("Error Interno", "La función de logout no está disponible.");
+        return;
+    }
+    try {
+      const resultAction = await dispatch(logoutUserThunk()); // Usar logoutUserThunk importado
+      console.log("[ProfileScreen] Resultado de logoutUserThunk:", resultAction);
+      if (logoutUserThunk.fulfilled.match(resultAction)) {
+        console.log("[ProfileScreen] Cierre de sesión completado (fulfilled).");
+      } else if (logoutUserThunk.rejected.match(resultAction)) {
+        console.error("[ProfileScreen] Falla al cerrar sesión (rejected):", resultAction.payload);
+        const errorMessage = "No se pudo cerrar la sesión: " + (resultAction.payload || "Error desconocido");
+        if (Platform.OS === 'web') {
+            alert(errorMessage);
+        } else {
+            Alert.alert("Error", errorMessage);
+        }
+      }
+    } catch (e) {
+      console.error("[ProfileScreen] Excepción en performLogout:", e);
+      const errorMessage = "Ocurrió una excepción al intentar cerrar sesión.";
+      if (Platform.OS === 'web') {
+        alert(errorMessage);
+      } else {
+        Alert.alert("Error", errorMessage);
+      }
+    }
+  }, [dispatch]); // logoutUserThunk es estable (importación de módulo), no necesita ser dependencia
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Cerrar Sesión",
-      "¿Estás seguro de que quieres cerrar sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Sí, Cerrar Sesión", 
-          style: "destructive",
-          onPress: async () => {
-            await dispatch(logoutUser());
+    console.log("[ProfileScreen] Inicio de handleLogout");
+    console.log("[ProfileScreen] Estado actual de isLoadingAuth:", isLoadingAuth);
+    console.log("[ProfileScreen] Estado actual de authError:", authError);
+    console.log("[ProfileScreen] A punto de llamar a la confirmación");
+
+    if (Platform.OS === 'web') {
+      console.log("[ProfileScreen] Usando window.confirm para web.");
+      if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+        await performLogout();
+      } else {
+        console.log("[ProfileScreen] Cierre de sesión cancelado por el usuario (web confirm).");
+      }
+    } else {
+      console.log("[ProfileScreen] Usando Alert.alert para móvil.");
+      Alert.alert(
+        "Cerrar Sesión",
+        "¿Estás seguro de que quieres cerrar sesión?",
+        [
+          { text: "Cancelar", style: "cancel", onPress: () => console.log("[ProfileScreen] Cierre de sesión cancelado por el usuario (móvil alert).") },
+          {
+            text: "Sí, Cerrar Sesión",
+            style: "destructive",
+            onPress: performLogout
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
+    console.log("[ProfileScreen] Confirmación llamada exitosamente.");
   };
 
   const imageSource = profileImageUri 
     ? { uri: profileImageUri } 
     : { uri: `https://placehold.co/120x120/${COLORS.white.substring(1)}/${COLORS.primary_dark.substring(1)}&text=${user?.email ? user.email[0].toUpperCase() : 'P'}`};
 
-
   return (
     <View style={profileStyles.container}>
       <View style={profileStyles.profileHeader}>
-        <TouchableOpacity onPress={pickImage} disabled={isUploading}>
+        <TouchableOpacity onPress={pickImage} disabled={isUploading} activeOpacity={0.7}>
           <Image 
             source={imageSource}
             style={profileStyles.profileImage}
@@ -150,7 +197,7 @@ const ProfileScreen = ({ navigation }) => {
           )}
           {!isUploading && (
             <View style={profileStyles.cameraIconOverlay}>
-                <Ionicons name="camera" size={20} color={COLORS.white} />
+                <Ionicons name="camera-reverse-outline" size={20} color={COLORS.white} />
             </View>
           )}
         </TouchableOpacity>
@@ -158,19 +205,19 @@ const ProfileScreen = ({ navigation }) => {
         {user?.email && <Text style={profileStyles.userEmail}>{user.email}</Text>}
       </View>
       
-      <TouchableOpacity style={profileStyles.menuItem} onPress={() => navigation.navigate(ROUTES.ORDERS)}>
+      <TouchableOpacity style={profileStyles.menuItem} onPress={() => navigation.navigate(ROUTES.ORDERS)} activeOpacity={0.6}>
         <Ionicons name="receipt-outline" size={24} color={COLORS.primary} />
         <Text style={profileStyles.menuItemText}>Mis Pedidos</Text>
         <Ionicons name="chevron-forward-outline" size={22} color={COLORS.gray} />
       </TouchableOpacity>
 
-       <TouchableOpacity style={profileStyles.menuItem} onPress={() => Alert.alert('Editar Perfil', 'Funcionalidad no implementada aún.')}>
+       <TouchableOpacity style={profileStyles.menuItem} onPress={() => Alert.alert('Editar Perfil', 'Funcionalidad no implementada aún.')} activeOpacity={0.6}>
         <Ionicons name="person-circle-outline" size={24} color={COLORS.primary} />
         <Text style={profileStyles.menuItemText}>Editar Perfil</Text>
         <Ionicons name="chevron-forward-outline" size={22} color={COLORS.gray} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={profileStyles.menuItem} onPress={() => Alert.alert('Configuración', 'Funcionalidad no implementada aún.')}>
+      <TouchableOpacity style={profileStyles.menuItem} onPress={() => Alert.alert('Configuración', 'Funcionalidad no implementada aún.')} activeOpacity={0.6}>
         <Ionicons name="settings-outline" size={24} color={COLORS.primary} />
         <Text style={profileStyles.menuItemText}>Configuración</Text>
         <Ionicons name="chevron-forward-outline" size={22} color={COLORS.gray} />
@@ -179,11 +226,12 @@ const ProfileScreen = ({ navigation }) => {
       <View style={profileStyles.logoutButtonContainer}>
         <TouchableOpacity 
             style={[profileStyles.menuItem, profileStyles.logoutButton]} 
-            onPress={handleLogout}
-            disabled={isLoadingLogout || isUploading}
+            onPress={handleLogout} // handleLogout ahora llama a performLogout
+            disabled={isLoadingAuth || isUploading} // Usar isLoadingAuth para el estado de carga general de auth
+            activeOpacity={0.6}
         >
             <Ionicons name="log-out-outline" size={26} color={COLORS.danger} />
-            {isLoadingLogout ? 
+            {isLoadingAuth ? // Usar isLoadingAuth
                 <ActivityIndicator color={COLORS.danger} style={{marginLeft: 15}}/> :
                 <Text style={[profileStyles.menuItemText, profileStyles.logoutButtonText]}>Cerrar Sesión</Text>
             }
@@ -204,8 +252,9 @@ const profileStyles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     marginBottom: 25,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 25, 
+    borderBottomRightRadius: 25,
+    elevation: 5, 
   },
   profileImage: {
     width: 110, 
@@ -225,23 +274,26 @@ const profileStyles = StyleSheet.create({
   },
   cameraIconOverlay: {
     position: 'absolute',
-    bottom: 10,
-    right: 0,
+    bottom: 12, 
+    right: 2,  
     backgroundColor: COLORS.secondary,
-    padding: 6,
-    borderRadius: 15,
-    borderWidth: 1,
+    padding: 8, 
+    borderRadius: 20, 
+    borderWidth: 2, 
     borderColor: COLORS.white,
+    elevation: 5,
   },
   userName: {
     fontSize: 22,
     fontWeight: 'bold',
     color: COLORS.white,
     marginBottom: 5,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   userEmail: {
     fontSize: 15,
     color: COLORS.primary_light,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   menuItem: {
     backgroundColor: COLORS.white,
@@ -250,19 +302,20 @@ const profileStyles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 20,
     marginHorizontal: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    borderRadius: 12, 
+    marginBottom: 12, 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.08, 
+    shadowRadius: 3,
+    elevation: 2, 
   },
   menuItemText: {
     flex: 1,
     marginLeft: 18,
     fontSize: 17,
     color: COLORS.text,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   logoutButtonContainer: {
     marginTop: 20, 

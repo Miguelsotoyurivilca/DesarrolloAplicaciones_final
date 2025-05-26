@@ -58,10 +58,14 @@ export const loginUser = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { rejectWithValue }) => {
+    console.log("[authSlice/logoutUser] Iniciando proceso de signOut de Firebase...");
     try {
       await signOut(firebaseAuth);
-      return null; 
+      console.log("[authSlice/logoutUser] signOut de Firebase exitoso.");
+      // onAuthStateChanged manejará la actualización del estado a null.
+      return null; // Indica éxito
     } catch (error) {
+      console.error("[authSlice/logoutUser] Error en signOut de Firebase:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -135,13 +139,17 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(logoutUser.pending, (state) => {
-        state.isLoading = true; 
+        console.log("[authSlice/logoutUser.pending] Estado de carga activado para logout.");
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.isLoading = false; 
+        console.log("[authSlice/logoutUser.fulfilled] Logout completado. isLoading se pondrá en false por onAuthStateChanged -> setUser(null).");
+        // state.isLoading = false; // No es necesario aquí, setUser lo hará.
+        // user e isAuthenticated serán actualizados por onAuthStateChanged via setUser(null)
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        console.error("[authSlice/logoutUser.rejected] Error en logout:", action.payload);
         state.isLoading = false;
         state.error = action.payload;
       })
