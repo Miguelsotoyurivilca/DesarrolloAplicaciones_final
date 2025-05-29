@@ -8,12 +8,13 @@ import { useSelector } from 'react-redux';
 
 // Importar Pantallas principales
 import CartScreen from '../screens/Main/CartScreen';
+import EditProfileScreen from '../screens/Main/EditProfileScreen'; // <-- NUEVA PANTALLA
 import HomeScreen from '../screens/Main/HomeScreen';
 import OrdersScreen from '../screens/Main/OrdersScreen';
 import ProductDetailScreen from '../screens/Main/ProductDetailScreen';
 import ProductsScreen from '../screens/Main/ProductsScreen';
 import ProfileScreen from '../screens/Main/ProfileScreen';
-// import OrderDetailScreen from '../screens/Main/OrderDetailScreen'; // Aún no creada, pero para el futuro
+import SettingsScreen from '../screens/Main/SettingsScreen'; // <-- NUEVA PANTALLA
 
 import { COLORS } from '../constants/colors';
 import { ROUTES } from '../constants/routes';
@@ -26,12 +27,12 @@ const commonStackScreenOptions = {
   headerShown: true,
   headerStyle: { 
     backgroundColor: COLORS.primary,
-    elevation: 0, // Remove shadow on Android
-    shadowOpacity: 0, // Remove shadow on iOS
+    elevation: 0, 
+    shadowOpacity: 0, 
    },
   headerTintColor: COLORS.white,
-  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }, // Ajuste de tamaño de fuente
-  headerTitleAlign: 'center', // Centrar título del header
+  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }, 
+  headerTitleAlign: 'center', 
 };
 
 const HomeStack = () => (
@@ -59,7 +60,8 @@ const ProfileStack = () => (
   <Stack.Navigator screenOptions={commonStackScreenOptions}>
     <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} options={{ title: 'Mi Cuenta' }} />
     <Stack.Screen name={ROUTES.ORDERS} component={OrdersScreen} options={{ title: 'Historial de Pedidos' }} />
-    {/* <Stack.Screen name={ROUTES.ORDER_DETAIL} component={OrderDetailScreen} options={{ title: 'Detalle del Pedido' }} /> */}
+    <Stack.Screen name={ROUTES.EDIT_PROFILE} component={EditProfileScreen} options={{ title: 'Editar Perfil' }} /> 
+    <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} options={{ title: 'Configuración' }} />
   </Stack.Navigator>
 );
 
@@ -97,19 +99,19 @@ const MainTabNavigator = () => {
         tabBarActiveTintColor: COLORS.primary, 
         tabBarInactiveTintColor: COLORS.textMuted, 
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600', // Un valor fijo, por ejemplo
-          marginBottom: 3,
+          fontSize: 11, 
+          fontWeight: '600', 
+          marginBottom: 3, 
         },
         tabBarStyle: {
-          paddingBottom: Platform.OS === 'ios' ? 2 : 5, // Ajuste para notch en iOS
+          paddingBottom: Platform.OS === 'ios' ? 2 : 5, 
           paddingTop:5,
-          height: Platform.OS === 'ios' ? 85 : 65, // Más alto para iOS
+          height: Platform.OS === 'ios' ? 85 : 65, 
           backgroundColor: COLORS.white, 
-          borderTopWidth: 0.5, // Borde más sutil
+          borderTopWidth: 0.5, 
           borderTopColor: COLORS.lightGray,
-          elevation: 5, // Sombra sutil en Android
-          shadowColor: '#000', // Sombra sutil en iOS
+          elevation: 5, 
+          shadowColor: '#000', 
           shadowOffset: { width: 0, height: -1 },
           shadowOpacity: 0.05,
           shadowRadius: 2,

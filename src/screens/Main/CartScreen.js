@@ -1,7 +1,8 @@
 // src/screens/Main/CartScreen.js
 // Pantalla del Carrito de Compras
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Agregado Platform
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
@@ -15,7 +16,7 @@ import {
 } from '../../store/slices/cartSlice';
 import { processOrder } from '../../store/slices/orderSlice';
 
-const CartItemCard = ({ item, onRemove, onIncrement, onDecrement }) => ( 
+const CartItemCard = React.memo(({ item, onRemove, onIncrement, onDecrement }) => ( 
   <View style={cartStyles.cartItem}>
     <Image source={{uri: item.imageUrl || `https://placehold.co/80x80/${COLORS.lightGray.substring(1)}/AAAAAA&text=${item.name[0]}`}} style={cartStyles.itemImage} />
     <View style={cartStyles.itemInfo}>
@@ -24,19 +25,19 @@ const CartItemCard = ({ item, onRemove, onIncrement, onDecrement }) => (
       <Text style={cartStyles.itemSubtotal}>Subtotal: S/ {(item.price * item.quantity).toFixed(2)}</Text>
     </View>
     <View style={cartStyles.itemActions}>
-        <TouchableOpacity style={cartStyles.actionButton} onPress={onDecrement}>
+        <TouchableOpacity style={cartStyles.actionButton} onPress={onDecrement} activeOpacity={0.6}>
             <Ionicons name="remove-circle" size={30} color={COLORS.secondary} />
         </TouchableOpacity>
         <Text style={cartStyles.quantityText}>{item.quantity}</Text>
-        <TouchableOpacity style={cartStyles.actionButton} onPress={onIncrement}>
+        <TouchableOpacity style={cartStyles.actionButton} onPress={onIncrement} activeOpacity={0.6}>
             <Ionicons name="add-circle" size={30} color={COLORS.primary} />
         </TouchableOpacity>
-        <TouchableOpacity style={[cartStyles.actionButton, cartStyles.removeButton]} onPress={onRemove}>
-            <Ionicons name="trash-outline" size={26} color={COLORS.danger} />
+        <TouchableOpacity style={[cartStyles.actionButton, cartStyles.removeButton]} onPress={onRemove} activeOpacity={0.6}>
+            <Ionicons name="trash-bin-outline" size={26} color={COLORS.danger} />
         </TouchableOpacity>
     </View>
   </View>
-);
+));
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -110,7 +111,8 @@ const CartScreen = ({ navigation }) => {
             <Ionicons name="cart-outline" size={100} color={COLORS.lightGray} />
             <Text style={cartStyles.emptyCartText}>Tu carrito está vacío.</Text>
             <Text style={cartStyles.emptyCartSubText}>¡Añade productos para verlos aquí!</Text>
-            <TouchableOpacity style={cartStyles.exploreButton} onPress={() => navigation.navigate(ROUTES.PRODUCTS_TAB, { screen: ROUTES.PRODUCTS })}>
+            <TouchableOpacity style={cartStyles.exploreButton} onPress={() => navigation.navigate(ROUTES.PRODUCTS_TAB, { screen: ROUTES.PRODUCTS })} activeOpacity={0.7}>
+                <Ionicons name="search-circle-outline" size={22} color={COLORS.white} style={{marginRight: 8}}/>
                 <Text style={cartStyles.exploreButtonText}>Explorar Productos</Text>
             </TouchableOpacity>
         </View>
@@ -129,9 +131,9 @@ const CartScreen = ({ navigation }) => {
             {isOrderLoading ? (
               <ActivityIndicator size="large" color={COLORS.primary} />
             ) : (
-              <TouchableOpacity style={cartStyles.checkoutButton} onPress={handleCheckout}>
+              <TouchableOpacity style={cartStyles.checkoutButton} onPress={handleCheckout} activeOpacity={0.8}>
                   <Text style={cartStyles.checkoutButtonText}>Proceder al Pago</Text>
-                  <Ionicons name="arrow-forward-circle-outline" size={24} color={COLORS.white} />
+                  <Ionicons name="arrow-forward-circle" size={24} color={COLORS.white} />
               </TouchableOpacity>
             )}
           </View>
@@ -153,6 +155,7 @@ const cartStyles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingTop: 20,
     paddingBottom: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   cartItem: {
     backgroundColor: COLORS.white,
@@ -184,16 +187,19 @@ const cartStyles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: 3,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   itemPrice: {
     fontSize: 14,
     color: COLORS.gray,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   itemSubtotal: {
     fontSize: 15,
     color: COLORS.primary,
     fontWeight: 'bold',
     marginTop: 5,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-bold',
   },
   itemActions: {
     flexDirection: 'column', 
@@ -211,6 +217,7 @@ const cartStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     marginVertical: 5, 
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   emptyContainer: {
     flex: 1,
@@ -223,6 +230,7 @@ const cartStyles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.textMuted,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   emptyCartSubText: {
     fontSize: 16,
@@ -230,19 +238,22 @@ const cartStyles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 30,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   exploreButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
+    paddingHorizontal: 25, 
+    borderRadius: 10, 
     flexDirection: 'row',
     alignItems: 'center',
+    elevation: 3,
   },
   exploreButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   summaryContainer: {
     borderTopWidth: 1,
@@ -262,6 +273,7 @@ const cartStyles = StyleSheet.create({
     color: COLORS.primary,
     marginBottom: 15,
     textAlign: 'right',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-bold',
   },
   checkoutButton: {
     backgroundColor: COLORS.success,
@@ -269,19 +281,22 @@ const cartStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 10, 
+    elevation: 3,
   },
   checkoutButtonText: {
     color: COLORS.white,
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 10,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   errorText: { 
     color: COLORS.danger,
     textAlign: 'center',
     marginBottom: 10,
     fontSize: 14,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   }
 });
 

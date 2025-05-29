@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, S
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
-import { loginUser, setError as setAuthError } from '../../store/slices/authSlice'; // Importar setError
+import { loginUser, setError as setAuthError } from '../../store/slices/authSlice';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -101,9 +101,9 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   title: {
-    fontSize: 28, // Ligeramente más pequeño
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium', // Fuente más moderna
-    fontWeight: '700', // Más peso
+    fontSize: 28, 
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium', 
+    fontWeight: '700', 
     color: COLORS.primary,
     marginBottom: 10,
   },
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGray,
     borderRadius: 12,
-    marginBottom: 20, // Más espacio
+    marginBottom: 20, 
     paddingHorizontal: 15,
   },
   inputIcon: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: COLORS.white,
     fontSize: 18,
-    fontWeight: '600', // Ligeramente menos bold
+    fontWeight: '600', 
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   linkText: {
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
   linkTextBold: {
-    color: COLORS.secondary, // Usar color secundario para el link
+    color: COLORS.secondary, 
     fontWeight: 'bold',
   },
   loader: {

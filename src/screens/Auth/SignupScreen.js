@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, S
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../../constants/colors';
 import { ROUTES } from '../../constants/routes';
-import { registerUser, setError as setAuthError } from '../../store/slices/authSlice'; // Importar setError
+import { registerUser, setError as setAuthError } from '../../store/slices/authSlice';
 
 
 const SignupScreen = ({ navigation }) => {
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   logo: {
-    marginBottom: 20, // Ligeramente más espacio
+    marginBottom: 20, 
   },
   title: {
     fontSize: 28,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: COLORS.textMuted,
-    marginBottom: 30, // Más espacio
+    marginBottom: 30, 
     textAlign: 'center',
   },
   inputContainer: {

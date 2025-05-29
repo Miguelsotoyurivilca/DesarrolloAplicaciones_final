@@ -9,6 +9,7 @@ import { getStorage } from "firebase/storage"; // Importar getStorage
 const firebaseConfig = {
   apiKey: "AIzaSyDc2yOKOnnxF8eVMX3awYI9hRoRypp_-Kk",
   authDomain: "miappmascotasecommerce.firebaseapp.com",
+  databaseURL: "https://miappmascotasecommerce-default-rtdb.firebaseio.com",
   projectId: "miappmascotasecommerce",
   storageBucket: "miappmascotasecommerce.firebasestorage.app",
   messagingSenderId: "176505676905",

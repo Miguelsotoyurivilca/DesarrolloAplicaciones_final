@@ -1,3 +1,4 @@
+// src/services/databaseService.js
 // Servicio para interactuar con Firebase Realtime Database.
 import { equalTo, get, limitToFirst, orderByChild, push, query, ref, set } from 'firebase/database';
 import { database, serverTimestamp } from './firebase';
